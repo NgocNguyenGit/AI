@@ -1,0 +1,49 @@
+FUNCTION_BLOCK washing_machine	// Block definition (there may be more than one block per file)
+
+VAR_INPUT				// Define input variables
+	dirtiness: REAL;
+	type: REAL;
+END_VAR
+
+VAR_OUTPUT				// Define output variable
+	time : REAL;
+END_VAR
+
+FUZZIFY dirtiness		// Fuzzify input variable 'dirtiness'
+	TERM small := (0, 1) (50, 0); 
+	TERM medium := (0,0) (50,1) (100,0);
+	TERM large := (50,0) (60,1) (100,1);
+END_FUZZIFY
+
+FUZZIFY type		// Fuzzify input variable 'type'
+	TERM notGreasy := (0, 1) (50, 0); 
+	TERM medium := (20,0) (50,1) (80,0 );
+	TERM greasy := (50,0) (100,1);
+END_FUZZIFY
+
+DEFUZZIFY time		// Defzzzify output variable 'time'
+	TERM long := (30, 0) (35,1) (60,1);
+	TERM medium := (10, 0) (20, 1) (37, 0);
+	TERM short := (7.5, 0) (10, 1) (20,0);
+	TERM veryShort := (0, 0) (7.5, 1) (10,0);
+	METHOD : COG;		// Use 'Center Of Gravity' defuzzification method
+END_DEFUZZIFY
+
+RULEBLOCK R1
+	AND : MIN;			//Use 'min' for 'and' (also implicit use 'max' for 'or' to fulfill DeMorgan's Law)
+	ACT : MIN;			//Use 'min' activation method (how the implication is defined)
+	ACCU : MAX;			//Use 'max' accumulation method (how the union of fuzzy sets is defined)
+
+	RULE 1 : IF (dirtiness IS large) AND (type IS medium) THEN (time IS long);
+	RULE 2 : IF (dirtiness IS medium) AND (type IS greasy) THEN (time IS long);
+	RULE 3 : IF (dirtiness IS small) AND (type IS greasy) THEN (time IS long);
+	RULE 4 : IF (dirtiness IS large) AND (type IS medium) THEN (time IS long);
+	RULE 5 : IF (dirtiness IS medium) AND (type IS medium) THEN (time IS medium);
+	RULE 6 : IF (dirtiness IS small) AND (type IS medium) THEN (time IS medium);
+	RULE 7 : IF (dirtiness IS large) AND (type IS notGreasy) THEN (time IS medium);
+	RULE 8 : IF (dirtiness IS medium) AND (type IS notGreasy) THEN (time IS short);
+	RULE 9 : IF (dirtiness IS small) AND (type IS notGreasy) THEN (time IS veryShort);
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
+
